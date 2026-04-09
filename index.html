@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>GhostPad</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Syne:wght@400;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --glass: rgba(12, 12, 18, 0.52);
+    --glass-border: rgba(255,255,255,0.08);
+    --glass-hover: rgba(255,255,255,0.06);
+    --glass-active: rgba(120,200,255,0.12);
+    --accent: rgba(120, 200, 255, 0.9);
+    --accent-dim: rgba(120, 200, 255, 0.18);
+    --text-primary: rgba(230, 235, 255, 0.92);
+    --text-dim: rgba(180, 190, 220, 0.45);
+    --danger: rgba(255, 100, 100, 0.8);
+    --radius: 14px;
+  }
+
+  html, body { width:100%; height:100%; background:transparent; overflow:hidden;
+    font-family:'Syne',sans-serif; -webkit-font-smoothing:antialiased; }
+
+  .shell {
+    width:100%; height:100%;
+    display:flex; flex-direction:column;
+    background:var(--glass);
+    backdrop-filter:blur(28px) saturate(160%);
+    -webkit-backdrop-filter:blur(28px) saturate(160%);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius);
+    box-shadow: 0 0 0 0.5px rgba(255,255,255,0.04) inset, 0 24px 80px rgba(0,0,0,0.55);
+    overflow:hidden;
+    animation:fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+
+  /* Titlebar */
+  .titlebar {
+    display:flex; align-items:center; gap:8px;
+    padding:10px 14px 8px;
+    -webkit-app-region:drag; user-select:none;
+    border-bottom:1px solid var(--glass-border); flex-shrink:0;
+  }
+  .dots { display:flex; gap:6px; -webkit-app-region:no-drag; }
+  .dot { width:11px; height:11px; border-radius:50%; cursor:pointer; border:1px solid rgba(0,0,0,0.25); transition:opacity 0.15s; }
+  .dot:hover{opacity:0.75} .dot.close{background:#ff5f57} .dot.min{background:#ffbd2e} .dot.full{background:#28c840}
+  .title { font-size:11px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--text-dim); margin-left:4px; flex:1; }
+  .status-pill { font-size:9px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; padding:3px 8px; border-radius:20px; border:1px solid; transition:all 0.25s; -webkit-app-region:no-drag; }
+  .status-pill.interactive { color:var(--accent); border-color:var(--accent-dim); background:rgba(120,200,255,0.07); }
+  .status-pill.passthrough { color:rgba(255,180,80,0.9); border-color:rgba(255,180,80,0.3); background:rgba(255,180,80,0.07); animation:pulse 2s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  /* Toolbar */
+  .toolbar { display:flex; align-items:center; gap:4px; padding:7px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; flex-wrap:wrap; }
+  .toolbar-group { display:flex; align-items:center; gap:2px; }
+  .toolbar-sep { width:1px; height:18px; background:var(--glass-border); margin:0 4px; }
+  .tb-btn { width:28px; height:28px; border:none; background:transparent; color:var(--text-dim); border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s; font-family:'Georgia',serif; }
+  .tb-btn:hover{ background:var(--glass-hover); color:var(--text-primary); }
+  .tb-btn.active{ background:var(--accent-dim); color:var(--accent); }
+  .font-size-wrap select { background:transparent; border:1px solid var(--glass-border); color:var(--text-dim); font-size:11px; font-family:'JetBrains Mono',monospace; border-radius:5px; padding:2px 4px; cursor:pointer; outline:none; width:46px; }
+  .font-size-wrap select option{ background:#1a1a2a; }
+  .color-strip { display:flex; gap:5px; align-items:center; }
+  .swatch { width:15px; height:15px; border-radius:50%; cursor:pointer; border:1.5px solid rgba(255,255,255,0.12); transition:transform 0.12s,border-color 0.12s; }
+  .swatch:hover{transform:scale(1.25)} .swatch.active{border-color:white;transform:scale(1.2)}
+  .color-input-wrap { position:relative; width:15px; height:15px; }
+  .color-input-wrap input[type=color] { position:absolute; inset:0; width:100%; height:100%; border:none; background:transparent; padding:0; cursor:pointer; border-radius:50%; opacity:0; }
+  .color-picker-icon { width:15px; height:15px; border-radius:50%; border:1.5px dashed rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text-dim); pointer-events:none; }
+
+  /* Layout */
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  /* Sidebar */
+  .sidebar { width:148px; flex-shrink:0; border-right:1px solid var(--glass-border); display:flex; flex-direction:column; overflow:hidden; }
+  .sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:9px 10px 7px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
+  .sidebar-label { font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-dim); }
+  .new-btn { width:20px; height:20px; border-radius:5px; background:var(--accent-dim); border:1px solid var(--accent-dim); color:var(--accent); font-size:15px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.15s; }
+  .new-btn:hover{ background:rgba(120,200,255,0.28); }
+  .notes-list { flex:1; overflow-y:auto; padding:6px; }
+  .notes-list::-webkit-scrollbar{ width:2px; }
+  .notes-list::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:2px; }
+
+  /* Note item */
+  .note-item { padding:8px 8px 7px; border-radius:8px; cursor:pointer; transition:background 0.12s; margin-bottom:3px; position:relative; }
+  .note-item:hover{ background:var(--glass-hover); }
+  .note-item.active{ background:var(--glass-active); }
+  .note-item-top { display:flex; align-items:flex-start; justify-content:space-between; gap:4px; margin-bottom:3px; }
+
+  .note-title {
+    font-size:11px; font-weight:600; color:var(--text-primary);
+    flex:1; min-width:0;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    outline:none; border:none; background:transparent;
+    font-family:'Syne',sans-serif; cursor:pointer; border-radius:3px;
+    transition:color 0.15s;
+    -webkit-user-modify: read-write-plaintext-only;
+  }
+  .note-item.active .note-title{ color:var(--accent); }
+  .note-title:focus {
+    white-space:normal; overflow:visible; text-overflow:initial;
+    background:rgba(255,255,255,0.06); padding:0 3px; cursor:text;
+    color:var(--text-primary) !important;
+  }
+
+  .note-del { flex-shrink:0; width:14px; height:14px; border:none; background:none; cursor:pointer; color:var(--text-dim); font-size:11px; line-height:1; opacity:0; transition:opacity 0.15s,color 0.15s; display:flex; align-items:center; justify-content:center; border-radius:3px; padding:0; }
+  .note-item:hover .note-del{ opacity:1; }
+  .note-del:hover{ color:var(--danger); }
+  .note-preview { font-size:9.5px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4; }
+  .note-date { font-size:8.5px; color:rgba(180,190,220,0.28); font-family:'JetBrains Mono',monospace; margin-top:3px; }
+
+  /* Editor */
+  .editor-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  #editor { flex:1; padding:16px 18px; overflow-y:auto; outline:none; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.75; color:var(--text-primary); caret-color:var(--accent); word-break:break-word; white-space:pre-wrap; }
+  #editor::-webkit-scrollbar{ width:3px; }
+  #editor::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:3px; }
+  #editor:empty::before{ content:attr(data-placeholder); color:var(--text-dim); pointer-events:none; }
+
+  /* Bottombar */
+  .bottombar { display:flex; align-items:center; justify-content:space-between; padding:5px 14px; border-top:1px solid var(--glass-border); flex-shrink:0; }
+  .hint { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); }
+  .word-count { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); }
+
+  /* Save flash */
+  .save-flash { position:fixed; bottom:26px; right:14px; font-size:9px; font-family:'JetBrains Mono',monospace; color:rgba(120,255,160,0.7); letter-spacing:0.08em; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .save-flash.show{ opacity:1; }
+
+  /* Color hint */
+  .color-hint { position:fixed; bottom:26px; left:50%; transform:translateX(-50%); font-size:9px; font-family:'JetBrains Mono',monospace; color:rgba(120,200,255,0.65); letter-spacing:0.08em; opacity:0; transition:opacity 0.4s; pointer-events:none; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="titlebar">
+    <div class="dots">
+      <div class="dot close" onclick="window.close()"></div>
+      <div class="dot min"   onclick="minimizeWin()"></div>
+      <div class="dot full"  onclick="maximizeWin()"></div>
+    </div>
+    <span class="title">GhostPad</span>
+    <span class="status-pill interactive" id="statusPill">● Активен</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="toolbar-group">
+      <button class="tb-btn" id="btnB" onclick="fmt('bold')"><b>B</b></button>
+      <button class="tb-btn" id="btnI" onclick="fmt('italic')"><i>I</i></button>
+      <button class="tb-btn" id="btnU" onclick="fmt('underline')" style="text-decoration:underline">U</button>
+      <button class="tb-btn" id="btnS" onclick="fmt('strikeThrough')" style="text-decoration:line-through">S</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group" style="display:flex;align-items:center;gap:4px">
+      <select id="fontSize" onchange="changeFontSize(this.value)" style="background:transparent;border:1px solid var(--glass-border);color:var(--text-dim);font-size:11px;font-family:'JetBrains Mono',monospace;border-radius:5px;padding:2px 4px;cursor:pointer;outline:none;width:46px;">
+        <option value="11">11</option><option value="12">12</option><option value="13">13</option>
+        <option value="14" selected>14</option><option value="16">16</option><option value="18">18</option>
+        <option value="22">22</option><option value="28">28</option>
+      </select>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="color-strip">
+      <div class="swatch active" style="background:#e6ebff" data-hex="#e6ebff" onclick="setColor('#e6ebff',this)"></div>
+      <div class="swatch" style="background:#78c8ff" data-hex="#78c8ff" onclick="setColor('#78c8ff',this)"></div>
+      <div class="swatch" style="background:#b0ff78" data-hex="#b0ff78" onclick="setColor('#b0ff78',this)"></div>
+      <div class="swatch" style="background:#ffda78" data-hex="#ffda78" onclick="setColor('#ffda78',this)"></div>
+      <div class="swatch" style="background:#ff9678" data-hex="#ff9678" onclick="setColor('#ff9678',this)"></div>
+      <div class="swatch" style="background:#d078ff" data-hex="#d078ff" onclick="setColor('#d078ff',this)"></div>
+      <div class="swatch" style="background:#ff6464" data-hex="#ff6464" onclick="setColor('#ff6464',this)"></div>
+      <div class="color-input-wrap" title="Свой цвет">
+        <div class="color-picker-icon">+</div>
+        <input type="color" id="customColor" value="#ffffff" oninput="setColor(this.value,null)">
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-label">Заметки</span>
+        <button class="new-btn" onclick="newNote()">+</button>
+      </div>
+      <div class="notes-list" id="notesList"></div>
+    </div>
+    <div class="editor-wrap">
+      <div id="editor" contenteditable="true" spellcheck="true" data-placeholder="Начните писать…"></div>
+    </div>
+  </div>
+
+  <div class="bottombar">
+    <span class="hint" id="hintText"></span>
+    <span class="word-count" id="wordCount">0 сл.</span>
+  </div>
+
+</div>
+<div class="save-flash" id="saveFlash">✓ сохранено</div>
+<div class="color-hint" id="colorHint">● цвет применён</div>
+
+<script>
+const { ipcRenderer } = require('electron');
+const editor = document.getElementById('editor');
+
+// ── Window ────────────────────────────────────────────
+function minimizeWin() { try { require('@electron/remote').getCurrentWindow().minimize(); } catch(e) {} }
+function maximizeWin() { try { const w = require('@electron/remote').getCurrentWindow(); w.isMaximized() ? w.unmaximize() : w.maximize(); } catch(e) {} }
+
+// ── Click-through ─────────────────────────────────────
+ipcRenderer.on('click-through-changed', (_, v) => {
+  const p = document.getElementById('statusPill');
+  p.textContent = v ? '○ Сквозной' : '● Активен';
+  p.className = 'status-pill ' + (v ? 'passthrough' : 'interactive');
+});
+
+// ── Hint ──────────────────────────────────────────────
+const mod = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
+document.getElementById('hintText').textContent = `${mod}+Shift+T — сквозной  |  ${mod}+Shift+H — скрыть`;
+
+// ── State ─────────────────────────────────────────────
+let notes = [];
+let currentId = null;
+let saveTimer = null;
+
+// ── Init ──────────────────────────────────────────────
+async function init() {
+  const saved = await ipcRenderer.invoke('notes:load');
+  notes = (saved && Array.isArray(saved) && saved.length > 0) ? saved : [makeNote('Первая заметка')];
+  currentId = notes[0].id;
+  editor.innerHTML = notes[0].content || '';
+  renderSidebar();
+  updateWordCount();
+  editor.focus();
+}
+
+function makeNote(title = 'Новая заметка') {
+  return { id: Date.now() + '_' + Math.random().toString(36).slice(2), title, content: '', updatedAt: Date.now() };
+}
+
+// ── Save ──────────────────────────────────────────────
+async function persist() {
+  await ipcRenderer.invoke('notes:save', notes);
+  const el = document.getElementById('saveFlash');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1200);
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persist, 800);
+}
+
+function flushCurrent() {
+  if (!currentId) return;
+  const n = notes.find(n => n.id === currentId);
+  if (!n) return;
+  n.content = editor.innerHTML;
+  n.updatedAt = Date.now();
+  // Auto-title from first line if still default
+  const plain = editor.innerText.trim();
+  const first = plain.split('\n')[0].slice(0, 32).trim();
+  if (first && (n.title === 'Новая заметка' || n.title === 'Первая заметка')) {
+    n.title = first;
+  }
+}
+
+// ── Editor events ─────────────────────────────────────
+editor.addEventListener('input', () => {
+  flushCurrent();
+  updateWordCount();
+  refreshSidebarItem();
+  scheduleSave();
+});
+editor.addEventListener('keyup', updateBtnStates);
+editor.addEventListener('mouseup', updateBtnStates);
+
+function updateWordCount() {
+  const t = editor.innerText.trim();
+  document.getElementById('wordCount').textContent = (t ? t.split(/\s+/).length : 0) + ' сл.';
+}
+function updateBtnStates() {
+  document.getElementById('btnB').classList.toggle('active', document.queryCommandState('bold'));
+  document.getElementById('btnI').classList.toggle('active', document.queryCommandState('italic'));
+  document.getElementById('btnU').classList.toggle('active', document.queryCommandState('underline'));
+
+  // Detect current text color and highlight matching swatch
+  const color = document.queryCommandValue('foreColor');
+  if (color) {
+    const normalized = normColor(color);
+    let matched = false;
+    document.querySelectorAll('.swatch[data-hex]').forEach(s => {
+      const match = normColor(s.dataset.hex) === normalized;
+      s.classList.toggle('active', match);
+      if (match) matched = true;
+    });
+    // No exact match — deselect all swatches
+    if (!matched) document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  }
+}
+
+// Convert any color format to comparable rgb string
+function normColor(c) {
+  if (!c) return '';
+  const d = document.createElement('div');
+  d.style.color = c;
+  document.body.appendChild(d);
+  const computed = getComputedStyle(d).color;
+  document.body.removeChild(d);
+  return computed;
+}
+
+// ── Paste: strip colors but keep bold/italic/size ────
+editor.addEventListener('paste', e => {
+  e.preventDefault();
+  const html = e.clipboardData.getData('text/html');
+  const plain = e.clipboardData.getData('text/plain');
+
+  let content;
+  if (html) {
+    // Parse pasted HTML and strip all color-related styles
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    // Remove color from every element
+    tmp.querySelectorAll('*').forEach(el => {
+      el.style.color = '';
+      el.style.backgroundColor = '';
+      el.style.background = '';
+      // Remove color from font tags
+      if (el.tagName === 'FONT') {
+        el.removeAttribute('color');
+      }
+      // Remove empty style attributes
+      if (el.getAttribute('style') === '') el.removeAttribute('style');
+    });
+
+    // Also strip Apple-specific meta wrappers and body tags
+    const body = tmp.querySelector('body');
+    content = (body || tmp).innerHTML;
+
+    // Final regex safety net: remove any remaining color declarations
+    content = content
+      .replace(/color\s*:\s*[^;}"']+;?/gi, '')
+      .replace(/background(-color)?\s*:\s*[^;}"']+;?/gi, '');
+  } else {
+    // Plain text — preserve line breaks
+    content = plain.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+  }
+
+  document.execCommand('insertHTML', false, content);
+});
+
+// ── Toolbar ───────────────────────────────────────────
+function fmt(cmd) { document.execCommand(cmd, false, null); editor.focus(); updateBtnStates(); }
+function changeFontSize(size) {
+  document.execCommand('fontSize', false, '7');
+  document.querySelectorAll('font[size="7"]').forEach(el => { el.removeAttribute('size'); el.style.fontSize = size + 'px'; });
+  editor.focus();
+}
+// Сохраняем выделение когда фокус уходит с редактора
+let savedRange = null;
+editor.addEventListener('mousedown', () => { savedRange = null; });
+document.addEventListener('mousedown', e => {
+  // Если клик не внутри редактора — сохраняем текущее выделение
+  if (!editor.contains(e.target)) {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0 && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      savedRange = sel.getRangeAt(0).cloneRange();
+    }
+  }
+});
+
+function setColor(color, swatchEl) {
+  // Восстанавливаем выделение если оно было сохранено
+  if (savedRange) {
+    editor.focus({ preventScroll: true })
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedRange);
+    savedRange = null;
+  } else {
+    editor.focus({ preventScroll: true })
+  }
+  document.execCommand('foreColor', false, color);
+  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+  if (swatchEl) swatchEl.classList.add('active');
+  showColorHint();
+}
+
+function showColorHint() {
+  // Flash a subtle hint only when no text is selected (so user knows it applies to next input)
+  const sel = window.getSelection();
+  if (!sel || sel.isCollapsed) {
+    const hint = document.getElementById('colorHint');
+    if (!hint) return;
+    hint.style.opacity = '1';
+    clearTimeout(hint._t);
+    hint._t = setTimeout(() => hint.style.opacity = '0', 1800);
+  }
+}
+
+// ── Sidebar ───────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('notesList');
+  list.innerHTML = '';
+  [...notes].sort((a,b) => b.updatedAt - a.updatedAt).forEach(n => list.appendChild(buildItem(n)));
+}
+
+function refreshSidebarItem() {
+  const n = notes.find(n => n.id === currentId);
+  if (!n) return;
+  const item = document.querySelector(`.note-item[data-id="${CSS.escape(n.id)}"]`);
+  if (!item) { renderSidebar(); return; }
+  const plain = (n.content || '').replace(/<[^>]*>/g,'').trim();
+  const prev = item.querySelector('.note-preview');
+  const tit  = item.querySelector('.note-title');
+  if (prev) prev.textContent = plain.slice(0,50) || '—';
+  if (tit && document.activeElement !== tit) tit.textContent = n.title;
+}
+
+function buildItem(n) {
+  const plain = (n.content || '').replace(/<[^>]*>/g,'').trim();
+  const div = document.createElement('div');
+  div.className = 'note-item' + (n.id === currentId ? ' active' : '');
+  div.dataset.id = n.id;
+
+  const top = document.createElement('div');
+  top.className = 'note-item-top';
+
+  // Title (contenteditable span)
+  const titleEl = document.createElement('div');
+  titleEl.className = 'note-title';
+  titleEl.contentEditable = 'true';
+  titleEl.spellcheck = false;
+  titleEl.textContent = n.title;
+  titleEl.addEventListener('mousedown', e => { if (n.id !== currentId) { e.preventDefault(); switchNote(n.id); } });
+  titleEl.addEventListener('focus', e => e.stopPropagation());
+  titleEl.addEventListener('blur', () => {
+    const v = titleEl.innerText.trim().slice(0,40) || 'Без названия';
+    n.title = v; titleEl.textContent = v; scheduleSave();
+  });
+  titleEl.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); titleEl.blur(); editor.focus(); } });
+
+  // Delete btn
+  const delBtn = document.createElement('button');
+  delBtn.className = 'note-del';
+  delBtn.textContent = '✕';
+  delBtn.title = 'Удалить';
+  delBtn.addEventListener('click', e => { e.stopPropagation(); deleteNote(n.id); });
+
+  top.appendChild(titleEl);
+  top.appendChild(delBtn);
+
+  const preview = document.createElement('div');
+  preview.className = 'note-preview';
+  preview.textContent = plain.slice(0,50) || '—';
+
+  const date = document.createElement('div');
+  date.className = 'note-date';
+  date.textContent = formatDate(n.updatedAt);
+
+  div.appendChild(top);
+  div.appendChild(preview);
+  div.appendChild(date);
+
+  // Click to switch (but not on title/del)
+  div.addEventListener('click', e => {
+    if (e.target === titleEl || e.target === delBtn || titleEl.contains(e.target)) return;
+    switchNote(n.id);
+  });
+
+  return div;
+}
+
+function switchNote(id) {
+  if (id === currentId) return;
+  flushCurrent();
+  currentId = id;
+  const n = notes.find(n => n.id === id);
+  editor.innerHTML = n ? (n.content || '') : '';
+  updateWordCount();
+  document.querySelectorAll('.note-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.id === String(id));
+  });
+  editor.focus();
+  scheduleSave();
+}
+
+function newNote() {
+  flushCurrent();
+  const n = makeNote();
+  notes.unshift(n);
+  currentId = n.id;
+  editor.innerHTML = '';
+  updateWordCount();
+  renderSidebar();
+  editor.focus();
+  persist();
+}
+
+function deleteNote(id) {
+  if (notes.length === 1) {
+    notes[0].content = ''; notes[0].title = 'Новая заметка'; notes[0].updatedAt = Date.now();
+    editor.innerHTML = ''; renderSidebar(); persist(); return;
+  }
+  notes = notes.filter(n => n.id !== id);
+  if (currentId === id) { currentId = notes[0].id; editor.innerHTML = notes[0].content || ''; updateWordCount(); }
+  renderSidebar();
+  persist();
+}
+
+function formatDate(ts) {
+  if (!ts) return '';
+  const d = new Date(ts), now = new Date();
+  return d.toDateString() === now.toDateString()
+    ? d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'})
+    : d.toLocaleDateString('ru-RU', {day:'numeric',month:'short'});
+}
+
+init();
+</script>
+</body>
+</html>
