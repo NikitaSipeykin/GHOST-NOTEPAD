@@ -1,0 +1,12 @@
+{
+  "name": "ghost-pad",
+  "version": "1.0.0",
+  "description": "Invisible notepad — hidden from screen sharing",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^28.0.0"
+  }
+}
