@@ -9,21 +9,20 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    /* Composed at runtime from --bg-color + --shell-alpha (see applyTheme/applyTransparency) */
     --glass: rgba(12, 12, 18, 0.52);
     --glass-border: rgba(255,255,255,0.08);
     --glass-hover: rgba(255,255,255,0.06);
     --glass-active: rgba(120,200,255,0.12);
     --accent: rgba(120, 200, 255, 0.9);
     --accent-dim: rgba(120, 200, 255, 0.18);
-    --tint: transparent;          /* window tint wash */
+    --tint: transparent;
     --tint-strength: 0.18;
     --text-primary: rgba(230, 235, 255, 0.92);
     --text-dim: rgba(180, 190, 220, 0.45);
     --danger: rgba(255, 100, 100, 0.8);
     --radius: 14px;
-    --bg-color: #0c0c12;          /* base of the glass background */
-    --shell-alpha: 0.52;          /* 0..1 transparency of the glass background */
+    --bg-color: #0c0c12;
+    --shell-alpha: 0.52;
   }
 
   html, body { width:100%; height:100%; background:transparent; overflow:hidden;
@@ -44,19 +43,12 @@
     transition:background 0.25s ease;
   }
   @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-  body.flush .shell { border-radius:0; }   /* maximized / fullscreen */
+  body.flush .shell { border-radius:0; }
 
-  /* Window tint wash — never intercepts pointer events, so click-through stays intact.
-     z-index:0 makes it paint above in-flow content but below the floating panels (z-index 20+). */
   .tint-layer { position:absolute; inset:0; pointer-events:none; background:var(--tint); opacity:var(--tint-strength); mix-blend-mode:overlay; z-index:0; transition:background 0.25s ease,opacity 0.25s ease; }
 
   /* Titlebar */
-  .titlebar {
-    display:flex; align-items:center; gap:8px;
-    padding:10px 14px 8px;
-    -webkit-app-region:drag; user-select:none;
-    border-bottom:1px solid var(--glass-border); flex-shrink:0;
-  }
+  .titlebar { display:flex; align-items:center; gap:8px; padding:10px 14px 8px; -webkit-app-region:drag; user-select:none; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
   .dots { display:flex; gap:6px; -webkit-app-region:no-drag; }
   .dot { width:11px; height:11px; border-radius:50%; cursor:pointer; border:1px solid rgba(0,0,0,0.25); transition:opacity 0.15s,transform 0.12s; }
   .dot:hover{opacity:0.75;transform:scale(1.12)} .dot:active{transform:scale(0.92)}
@@ -68,29 +60,34 @@
   .status-pill.passthrough { color:rgba(255,180,80,0.9); border-color:rgba(255,180,80,0.3); background:rgba(255,180,80,0.07); animation:pulse 2s ease infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
 
-  /* Toolbar */
-  .toolbar { display:flex; align-items:center; gap:4px; padding:7px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; flex-wrap:wrap; }
+  /* Toolbar (wraps onto a second row on small widths) */
+  .toolbar { display:flex; align-items:center; gap:4px; padding:7px 12px; border-bottom:1px solid var(--glass-border); flex-shrink:0; flex-wrap:wrap; row-gap:6px; }
   .toolbar-group { display:flex; align-items:center; gap:2px; }
   .toolbar-group.right { margin-left:auto; }
   .toolbar-sep { width:1px; height:18px; background:var(--glass-border); margin:0 4px; }
-  .tb-btn { width:28px; height:28px; border:none; background:transparent; color:var(--text-dim); border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s,transform 0.1s; font-family:'Georgia',serif; }
+  .tb-btn { min-width:28px; height:28px; padding:0 4px; border:none; background:transparent; color:var(--text-dim); border-radius:6px; cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center; transition:background 0.15s,color 0.15s,transform 0.1s; font-family:'Georgia',serif; }
   .tb-btn:hover{ background:var(--glass-hover); color:var(--text-primary); }
   .tb-btn:active{ transform:scale(0.9); }
   .tb-btn.active{ background:var(--accent-dim); color:var(--accent); }
   .tb-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:1px; }
   .tb-btn.icon{ font-family:inherit; font-size:14px; }
+  .tb-select { background:transparent; border:1px solid var(--glass-border); color:var(--text-dim); font-size:10px; font-family:'JetBrains Mono',monospace; border-radius:5px; padding:2px 4px; cursor:pointer; outline:none; }
+  .tb-select option { background:#1a1a2a; color:var(--text-primary); }
+  .tb-select.format { width:78px; }
+  .tb-select.font   { width:64px; }
+  .tb-select.size   { width:46px; }
   .color-strip { display:flex; gap:5px; align-items:center; }
   .swatch { width:15px; height:15px; border-radius:50%; cursor:pointer; border:1.5px solid rgba(255,255,255,0.12); transition:transform 0.12s,border-color 0.12s; }
   .swatch:hover{transform:scale(1.25)} .swatch.active{border-color:white;transform:scale(1.2)}
+  .swatch.clear { background:transparent !important; border-style:dashed; }
+  .swatch.clear::before { content:'⊘'; font-size:11px; color:var(--text-dim); line-height:1; display:flex; align-items:center; justify-content:center; height:100%; }
   .color-input-wrap { position:relative; width:15px; height:15px; }
   .color-input-wrap input[type=color] { position:absolute; inset:0; width:100%; height:100%; border:none; background:transparent; padding:0; cursor:pointer; border-radius:50%; opacity:0; }
   .color-picker-icon { width:15px; height:15px; border-radius:50%; border:1.5px dashed rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; font-size:9px; color:var(--text-dim); pointer-events:none; }
 
   /* Layout */
   .layout { display:flex; flex:1; overflow:hidden; }
-
-  /* Sidebar */
-  .sidebar { width:168px; flex-shrink:0; border-right:1px solid var(--glass-border); display:flex; flex-direction:column; overflow:hidden; }
+  .sidebar { width:172px; flex-shrink:0; border-right:1px solid var(--glass-border); display:flex; flex-direction:column; overflow:hidden; }
   .sidebar-header { display:flex; align-items:center; justify-content:space-between; padding:9px 10px 7px; border-bottom:1px solid var(--glass-border); flex-shrink:0; }
   .sidebar-label { font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-dim); }
   .sidebar-actions { display:flex; gap:4px; }
@@ -101,8 +98,7 @@
   .new-btn.folder{ background:rgba(255,255,255,0.05); border-color:var(--glass-border); color:var(--text-dim); }
   .new-btn.folder:hover{ background:var(--glass-hover); color:var(--text-primary); }
   .tree { flex:1; overflow-y:auto; padding:6px; }
-  .tree::-webkit-scrollbar{ width:2px; }
-  .tree::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:2px; }
+  .tree::-webkit-scrollbar{ width:2px; } .tree::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:2px; }
   .tree.drop-root{ background:var(--accent-dim); border-radius:8px; }
 
   /* Tree rows */
@@ -116,12 +112,7 @@
   .row-caret.leaf{ visibility:hidden; }
   .row-icon{ width:13px; flex-shrink:0; text-align:center; font-size:11px; color:var(--text-dim); }
   .folder-row.active .row-icon, .folder-row.active .row-name{ color:var(--accent); }
-  .row-name{
-    flex:1; min-width:0; font-size:11px; font-weight:600; color:var(--text-primary);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-    outline:none; border:none; background:transparent; font-family:'Syne',sans-serif;
-    border-radius:3px; transition:color 0.15s; -webkit-user-modify:read-write-plaintext-only;
-  }
+  .row-name{ flex:1; min-width:0; font-size:11px; font-weight:600; color:var(--text-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; outline:none; border:none; background:transparent; font-family:'Syne',sans-serif; border-radius:3px; transition:color 0.15s; -webkit-user-modify:read-write-plaintext-only; }
   .note-row.active .row-name{ color:var(--accent); }
   .row-name:focus{ white-space:normal; overflow:visible; text-overflow:initial; background:rgba(255,255,255,0.06); padding:0 3px; cursor:text; color:var(--text-primary) !important; }
   .row-actions{ display:flex; gap:1px; flex-shrink:0; opacity:0; transition:opacity 0.15s; }
@@ -132,7 +123,7 @@
   .row-act:focus-visible{ outline:1px solid var(--accent); }
   .note-meta{ display:flex; flex-direction:column; min-width:0; flex:1; }
   .note-preview { font-size:9px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.35; }
-  .note-date { font-size:8px; color:rgba(180,190,220,0.28); font-family:'JetBrains Mono',monospace; }
+  .note-date    { font-size:8px; color:rgba(180,190,220,0.28); font-family:'JetBrains Mono',monospace; }
   .tree-children{ margin-left:9px; padding-left:5px; border-left:1px solid var(--glass-border); }
   .tree-children.collapsed{ display:none; }
   .tree-empty{ font-size:9px; color:var(--text-dim); font-family:'JetBrains Mono',monospace; padding:8px 6px; text-align:center; }
@@ -140,16 +131,32 @@
   /* Editor */
   .editor-wrap { flex:1; display:flex; flex-direction:column; overflow:hidden; }
   #editor { flex:1; padding:16px 18px; overflow-y:auto; outline:none; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.75; color:var(--text-primary); caret-color:var(--accent); word-break:break-word; white-space:pre-wrap; }
-  #editor::-webkit-scrollbar{ width:3px; }
-  #editor::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:3px; }
+  #editor::-webkit-scrollbar{ width:3px; } #editor::-webkit-scrollbar-thumb{ background:var(--glass-border); border-radius:3px; }
   #editor:empty::before{ content:attr(data-placeholder); color:var(--text-dim); pointer-events:none; }
+
+  /* Apple-Notes-ish block styles inside the editor */
+  #editor h1 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; line-height:1.25; margin:8px 0 4px; }
+  #editor h2 { font-family:'Syne',sans-serif; font-size:17px; font-weight:600; line-height:1.3;  margin:6px 0 3px; }
+  #editor h3 { font-family:'Syne',sans-serif; font-size:14px; font-weight:600; line-height:1.35; margin:4px 0 2px; color:var(--text-primary); }
+  #editor p, #editor div { margin:0; }
+  #editor ul, #editor ol { padding-left:22px; margin:2px 0; }
+  #editor li { margin:1px 0; }
+  #editor a { color:var(--accent); }
+
+  /* Checklist line */
+  .gp-check { display:flex; align-items:baseline; gap:6px; padding:1px 0; }
+  .gp-check input[type=checkbox] { appearance:none; -webkit-appearance:none; width:13px; height:13px; flex-shrink:0; border:1.5px solid var(--text-dim); border-radius:50%; background:transparent; cursor:pointer; position:relative; transform:translateY(2px); transition:all 0.15s; }
+  .gp-check input[type=checkbox]:checked { background:var(--accent); border-color:var(--accent); }
+  .gp-check input[type=checkbox]:checked::after { content:'✓'; position:absolute; top:-3px; left:1px; color:#0c0c12; font-size:10px; font-weight:700; }
+  .gp-check.done .gp-check-text { color:var(--text-dim); text-decoration:line-through; }
+  .gp-check-text { flex:1; min-width:1ch; outline:none; }
 
   /* Bottombar */
   .bottombar { display:flex; align-items:center; justify-content:space-between; padding:5px 14px; border-top:1px solid var(--glass-border); flex-shrink:0; }
   .hint { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); }
   .word-count { font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); }
 
-  /* Floating side panels (transparency / theme) */
+  /* Floating side panel (theme) */
   .panel {
     position:absolute; right:8px; top:46px; z-index:20;
     -webkit-app-region:no-drag;
@@ -161,25 +168,6 @@
   }
   .panel.open{ opacity:1; transform:none; pointer-events:auto; }
   .panel-title{ font-size:9px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-dim); margin-bottom:10px; }
-
-  /* Transparency panel */
-  .transparency-panel{ width:172px; }
-  .opacity-track{ display:flex; align-items:center; gap:8px; }
-  input[type=range].opacity-slider{
-    -webkit-appearance:none; appearance:none; flex:1; height:4px; border-radius:4px;
-    background:linear-gradient(to right, var(--accent-dim), var(--accent));
-    outline:none; cursor:pointer;
-  }
-  input[type=range].opacity-slider::-webkit-slider-thumb{
-    -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%;
-    background:#fff; border:2px solid var(--accent); cursor:pointer;
-    box-shadow:0 1px 4px rgba(0,0,0,0.4); transition:transform 0.1s;
-  }
-  input[type=range].opacity-slider::-webkit-slider-thumb:active{ transform:scale(1.25); }
-  input[type=range].opacity-slider:focus-visible{ box-shadow:0 0 0 2px var(--accent-dim); }
-  .opacity-value{ font-size:10px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); min-width:30px; text-align:right; }
-
-  /* Theme panel */
   .theme-panel{ width:188px; }
   .theme-row{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .theme-row label{ font-size:10px; color:var(--text-primary); font-family:'JetBrains Mono',monospace; }
@@ -193,11 +181,9 @@
   .theme-reset{ width:100%; font-size:9px; font-family:'JetBrains Mono',monospace; color:var(--text-dim); background:none; border:1px solid var(--glass-border); border-radius:6px; padding:5px; cursor:pointer; margin-top:8px; transition:color 0.15s,border-color 0.15s; }
   .theme-reset:hover{ color:var(--danger); border-color:var(--danger); }
 
-  /* Save flash */
+  /* Save flash / color hint */
   .save-flash { position:fixed; bottom:26px; right:14px; font-size:9px; font-family:'JetBrains Mono',monospace; color:rgba(120,255,160,0.7); letter-spacing:0.08em; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:30; }
   .save-flash.show{ opacity:1; }
-
-  /* Color hint */
   .color-hint { position:fixed; bottom:26px; left:50%; transform:translateX(-50%); font-size:9px; font-family:'JetBrains Mono',monospace; color:rgba(120,200,255,0.65); letter-spacing:0.08em; opacity:0; transition:opacity 0.4s; pointer-events:none; z-index:30; }
 </style>
 </head>
@@ -207,9 +193,9 @@
 
   <div class="titlebar">
     <div class="dots">
-      <div class="dot close" tabindex="0" role="button" title="Закрыть"           onclick="winClose()"></div>
-      <div class="dot min"   tabindex="0" role="button" title="Свернуть"           onclick="winMinimize()"></div>
-      <div class="dot full"  tabindex="0" role="button" title="Развернуть / F11 — полноэкранный" onclick="winToggleMaximize()"></div>
+      <div class="dot close" tabindex="0" role="button" title="Закрыть" onclick="winClose()"></div>
+      <div class="dot min"   tabindex="0" role="button" title="Свернуть" onclick="winMinimize()"></div>
+      <div class="dot full"  tabindex="0" role="button" title="Развернуть · F11 — полноэкранный" onclick="winToggleMaximize()"></div>
     </div>
     <span class="title">GhostPad</span>
     <span class="status-pill interactive" id="statusPill">● Активен</span>
@@ -217,22 +203,48 @@
 
   <div class="toolbar">
     <div class="toolbar-group">
-      <button class="tb-btn" id="btnB" title="Жирный (Ctrl/⌘+B)"      onclick="fmt('bold')"><b>B</b></button>
-      <button class="tb-btn" id="btnI" title="Курсив (Ctrl/⌘+I)"      onclick="fmt('italic')"><i>I</i></button>
-      <button class="tb-btn" id="btnU" title="Подчёркнутый (Ctrl/⌘+U)" onclick="fmt('underline')" style="text-decoration:underline">U</button>
-      <button class="tb-btn" id="btnS" title="Зачёркнутый"            onclick="fmt('strikeThrough')" style="text-decoration:line-through">S</button>
+      <select class="tb-select format" id="formatBlock" title="Стиль абзаца" onchange="setHeading(this.value); this.blur()">
+        <option value="p">Текст</option>
+        <option value="h1">Заголовок</option>
+        <option value="h2">Подзаголовок</option>
+        <option value="h3">Раздел</option>
+      </select>
+      <select class="tb-select font" id="fontFamily" title="Шрифт" onchange="setFontFamily(this.value); this.blur()">
+        <option value="mono"  selected>Mono</option>
+        <option value="sans">Sans</option>
+        <option value="serif">Serif</option>
+      </select>
     </div>
     <div class="toolbar-sep"></div>
-    <div class="toolbar-group" style="display:flex;align-items:center;gap:4px">
-      <select id="fontSize" title="Размер шрифта" onchange="changeFontSize(this.value)" style="background:transparent;border:1px solid var(--glass-border);color:var(--text-dim);font-size:11px;font-family:'JetBrains Mono',monospace;border-radius:5px;padding:2px 4px;cursor:pointer;outline:none;width:46px;">
+    <div class="toolbar-group">
+      <button class="tb-btn" id="btnB" title="Жирный (⌘/Ctrl+B)"        onclick="fmt('bold')"><b>B</b></button>
+      <button class="tb-btn" id="btnI" title="Курсив (⌘/Ctrl+I)"        onclick="fmt('italic')"><i>I</i></button>
+      <button class="tb-btn" id="btnU" title="Подчёркнутый (⌘/Ctrl+U)" onclick="fmt('underline')" style="text-decoration:underline">U</button>
+      <button class="tb-btn" id="btnS" title="Зачёркнутый"             onclick="fmt('strikeThrough')" style="text-decoration:line-through">S</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <select class="tb-select size" id="fontSize" title="Размер шрифта" onchange="changeFontSize(this.value); this.blur()">
         <option value="11">11</option><option value="12">12</option><option value="13">13</option>
         <option value="14" selected>14</option><option value="16">16</option><option value="18">18</option>
         <option value="22">22</option><option value="28">28</option>
       </select>
     </div>
     <div class="toolbar-sep"></div>
-    <div class="color-strip">
-      <div class="swatch active" style="background:#e6ebff" data-hex="#e6ebff" title="Цвет текста" onclick="setColor('#e6ebff',this)"></div>
+    <div class="toolbar-group" title="Выравнивание">
+      <button class="tb-btn icon" id="btnAlignLeft"   title="По левому краю"  onclick="setAlign('left')">⇤</button>
+      <button class="tb-btn icon" id="btnAlignCenter" title="По центру"       onclick="setAlign('center')">⇔</button>
+      <button class="tb-btn icon" id="btnAlignRight"  title="По правому краю" onclick="setAlign('right')">⇥</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group" title="Списки">
+      <button class="tb-btn icon" title="Маркированный список" onclick="insertList('unordered')">•</button>
+      <button class="tb-btn icon" title="Нумерованный список"  onclick="insertList('ordered')">≡</button>
+      <button class="tb-btn icon" title="Чек-лист"              onclick="insertChecklist()">☐</button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="color-strip" title="Цвет текста">
+      <div class="swatch active" style="background:#e6ebff" data-hex="#e6ebff" onclick="setColor('#e6ebff',this)"></div>
       <div class="swatch" style="background:#78c8ff" data-hex="#78c8ff" onclick="setColor('#78c8ff',this)"></div>
       <div class="swatch" style="background:#b0ff78" data-hex="#b0ff78" onclick="setColor('#b0ff78',this)"></div>
       <div class="swatch" style="background:#ffda78" data-hex="#ffda78" onclick="setColor('#ffda78',this)"></div>
@@ -244,9 +256,17 @@
         <input type="color" id="customColor" value="#ffffff" oninput="setColor(this.value,null)">
       </div>
     </div>
+    <div class="toolbar-sep"></div>
+    <div class="color-strip" title="Подсветка фона">
+      <div class="swatch hl-swatch clear"                                                   onclick="setHighlight('transparent', this)"></div>
+      <div class="swatch hl-swatch" style="background:rgba(255,225,80,0.45)"  data-hex="#ffe150" onclick="setHighlight('rgba(255,225,80,0.45)', this)"></div>
+      <div class="swatch hl-swatch" style="background:rgba(120,255,160,0.35)" data-hex="#78ffa0" onclick="setHighlight('rgba(120,255,160,0.35)', this)"></div>
+      <div class="swatch hl-swatch" style="background:rgba(120,200,255,0.35)" data-hex="#78c8ff" onclick="setHighlight('rgba(120,200,255,0.35)', this)"></div>
+      <div class="swatch hl-swatch" style="background:rgba(255,140,200,0.35)" data-hex="#ff8cc8" onclick="setHighlight('rgba(255,140,200,0.35)', this)"></div>
+    </div>
     <div class="toolbar-group right">
-      <button class="tb-btn icon" id="btnTransparency" title="Прозрачность" aria-haspopup="true" onclick="togglePanel('transparency')">◐</button>
-      <button class="tb-btn icon" id="btnTheme" title="Оформление" aria-haspopup="true" onclick="togglePanel('theme')">✦</button>
+      <button class="tb-btn icon" id="btnTransparency" title="Прозрачность (откроется в отдельном окне справа)" onclick="toggleTransparencySlider()">◐</button>
+      <button class="tb-btn icon" id="btnTheme"        title="Оформление" aria-haspopup="true" onclick="togglePanel('theme')">✦</button>
     </div>
   </div>
 
@@ -255,8 +275,8 @@
       <div class="sidebar-header">
         <span class="sidebar-label">Заметки</span>
         <div class="sidebar-actions">
-          <button class="new-btn folder" title="Новая папка" onclick="newFolder()">▤</button>
-          <button class="new-btn" title="Новая заметка" onclick="newNote()">+</button>
+          <button class="new-btn folder" title="Новая папка в корне" onclick="newFolder()">▤</button>
+          <button class="new-btn"        title="Новая заметка в корне" onclick="newNote()">+</button>
         </div>
       </div>
       <div class="tree" id="tree"></div>
@@ -271,16 +291,7 @@
     <span class="word-count" id="wordCount">0 сл.</span>
   </div>
 
-  <!-- Transparency panel -->
-  <div class="panel transparency-panel" id="transparencyPanel">
-    <div class="panel-title">Прозрачность</div>
-    <div class="opacity-track">
-      <input type="range" class="opacity-slider" id="opacitySlider" min="12" max="98" value="52" title="Прозрачность окна" aria-label="Прозрачность окна">
-      <span class="opacity-value" id="opacityValue">52%</span>
-    </div>
-  </div>
-
-  <!-- Theme panel -->
+  <!-- Theme panel (transparency lives in a separate window now) -->
   <div class="panel theme-panel" id="themePanel">
     <div class="panel-title">Оформление</div>
     <div class="theme-row"><label for="bgColorInput">Фон</label><input type="color" id="bgColorInput" value="#0c0c12"></div>
@@ -296,624 +307,19 @@
     </div>
     <button class="theme-reset" onclick="applyPreset('ghost')">Сбросить</button>
   </div>
-
 </div>
 <div class="save-flash" id="saveFlash">✓ сохранено</div>
 <div class="color-hint" id="colorHint">● цвет применён</div>
 
-<script>
-const { ipcRenderer } = require('electron');
-const editor = document.getElementById('editor');
-
-// ════════════════════════════════════════════════════════════════════════════
-// Window controls (main process owns the real window via IPC)
-// ════════════════════════════════════════════════════════════════════════════
-function winClose()          { ipcRenderer.send('win:close'); }
-function winMinimize()       { ipcRenderer.send('win:minimize'); }
-function winToggleMaximize() { ipcRenderer.send('win:toggle-maximize'); }
-function winToggleFullscreen(){ ipcRenderer.send('win:toggle-fullscreen'); }
-
-let isFullScreen = false;
-ipcRenderer.on('window-state-changed', (_, st) => {
-  isFullScreen = !!st.isFullScreen;
-  document.body.classList.toggle('flush', !!(st.isMaximized || st.isFullScreen));
-  const full = document.querySelector('.dot.full');
-  if (full) {
-    full.title = st.isFullScreen ? 'Выйти из полноэкранного режима'
-               : st.isMaximized  ? 'Восстановить размер / F11 — полноэкранный'
-               :                   'Развернуть / F11 — полноэкранный';
-  }
-});
-
-// keyboard: dots act as buttons
-document.querySelectorAll('.dot').forEach(d => {
-  d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); d.click(); } });
-});
-
-// ════════════════════════════════════════════════════════════════════════════
-// Click-through indicator
-// ════════════════════════════════════════════════════════════════════════════
-ipcRenderer.on('click-through-changed', (_, v) => {
-  const p = document.getElementById('statusPill');
-  p.textContent = v ? '○ Сквозной' : '● Активен';
-  p.className = 'status-pill ' + (v ? 'passthrough' : 'interactive');
-  if (v) closeAllPanels(); // panels would be unreachable in passthrough mode
-});
-
-// ── Hint ──────────────────────────────────────────────
-const mod = navigator.platform.includes('Mac') ? '⌘' : 'Ctrl';
-document.getElementById('hintText').textContent = `${mod}+Shift+T — сквозной  |  ${mod}+Shift+H — скрыть  |  F11 — полный экран`;
-
-// ════════════════════════════════════════════════════════════════════════════
-// Settings (transparency / theme / folder-tree state) — persisted via IPC.
-// Window bounds are persisted independently by the main process.
-// ════════════════════════════════════════════════════════════════════════════
-const DEFAULT_THEME = { bg: '#0c0c12', accent: '#78c8ff', tint: '#000000', tintStrength: 0.18 };
-const PRESETS = {
-  ghost:     { name:'Ghost Dark',     theme:{ bg:'#0c0c12', accent:'#78c8ff', tint:'#000000', tintStrength:0.18 }, opacity:52 },
-  cyberpunk: { name:'Cyberpunk',      theme:{ bg:'#14071e', accent:'#ff4fd8', tint:'#00e5ff', tintStrength:0.12 }, opacity:60 },
-  matrix:    { name:'Matrix',         theme:{ bg:'#02100a', accent:'#39ff7a', tint:'#0aff5e', tintStrength:0.10 }, opacity:55 },
-  frost:     { name:'Frosted Glass',  theme:{ bg:'#1a2230', accent:'#a8c8ff', tint:'#ffffff', tintStrength:0.10 }, opacity:38 },
-};
-
-let settings = { opacity: 52, theme: { ...DEFAULT_THEME }, expandedFolders: [], selectedFolderId: null };
-let settingsSaveTimer = null;
-
-function scheduleSettingsSave() {
-  clearTimeout(settingsSaveTimer);
-  settingsSaveTimer = setTimeout(() => {
-    settings.expandedFolders = [...expandedFolders];
-    settings.selectedFolderId = selectedFolderId;
-    ipcRenderer.invoke('settings:save', {
-      opacity: settings.opacity,
-      theme: settings.theme,
-      expandedFolders: settings.expandedFolders,
-      selectedFolderId: settings.selectedFolderId,
-    });
-  }, 400);
-}
-
-// ── Color helpers ─────────────────────────────────────
-function hexToRgb(hex) {
-  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex || '');
-  return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : { r:12, g:12, b:18 };
-}
-function rgba(hex, a) { const c = hexToRgb(hex); return `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`; }
-
-// ── Transparency ──────────────────────────────────────
-function applyTransparency(pct, persist = true) {
-  pct = Math.max(12, Math.min(98, Math.round(pct)));
-  settings.opacity = pct;
-  const a = pct / 100;
-  document.documentElement.style.setProperty('--shell-alpha', a);
-  document.documentElement.style.setProperty('--glass', rgba(settings.theme.bg, a));
-  const slider = document.getElementById('opacitySlider');
-  if (+slider.value !== pct) slider.value = pct;
-  document.getElementById('opacityValue').textContent = pct + '%';
-  if (persist) scheduleSettingsSave();
-}
-
-// ── Theme ─────────────────────────────────────────────
-function applyTheme(theme, persist = true) {
-  settings.theme = { ...DEFAULT_THEME, ...theme };
-  const t = settings.theme;
-  const root = document.documentElement.style;
-  root.setProperty('--bg-color', t.bg);
-  root.setProperty('--glass', rgba(t.bg, settings.opacity / 100));
-  root.setProperty('--accent', rgba(t.accent, 0.9));
-  root.setProperty('--accent-dim', rgba(t.accent, 0.18));
-  root.setProperty('--glass-active', rgba(t.accent, 0.12));
-  root.setProperty('--tint', t.tint && t.tint.toLowerCase() !== '#000000' ? t.tint : 'transparent');
-  root.setProperty('--tint-strength', t.tintStrength != null ? t.tintStrength : 0.18);
-  document.getElementById('bgColorInput').value = t.bg;
-  document.getElementById('accentColorInput').value = t.accent;
-  document.getElementById('tintColorInput').value = t.tint || '#000000';
-  if (persist) scheduleSettingsSave();
-}
-
-function applyPreset(key) {
-  const p = PRESETS[key];
-  if (!p) return;
-  applyTheme(p.theme);
-  applyTransparency(p.opacity);
-}
-
-// theme color inputs
-document.getElementById('bgColorInput').addEventListener('input', e => applyTheme({ ...settings.theme, bg: e.target.value }));
-document.getElementById('accentColorInput').addEventListener('input', e => applyTheme({ ...settings.theme, accent: e.target.value }));
-document.getElementById('tintColorInput').addEventListener('input', e => applyTheme({ ...settings.theme, tint: e.target.value }));
-
-// transparency slider
-const opacitySlider = document.getElementById('opacitySlider');
-opacitySlider.addEventListener('input', e => applyTransparency(+e.target.value));
-
-// ════════════════════════════════════════════════════════════════════════════
-// Floating side panels
-// ════════════════════════════════════════════════════════════════════════════
-const PANELS = { transparency: 'transparencyPanel', theme: 'themePanel' };
-function closeAllPanels() { Object.values(PANELS).forEach(id => document.getElementById(id).classList.remove('open')); }
-function togglePanel(name) {
-  const el = document.getElementById(PANELS[name]);
-  const wasOpen = el.classList.contains('open');
-  closeAllPanels();
-  if (!wasOpen) { el.classList.add('open'); const f = el.querySelector('input,button'); if (f) f.focus({ preventScroll: true }); }
-}
-// auto-hide on focus loss / outside click / Escape
-document.addEventListener('mousedown', e => {
-  if (e.target.closest('.panel') || e.target.closest('#btnTransparency') || e.target.closest('#btnTheme')) return;
-  closeAllPanels();
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'F11') { e.preventDefault(); winToggleFullscreen(); return; }
-  if (e.key === 'Escape') {
-    const anyPanelOpen = Object.values(PANELS).some(id => document.getElementById(id).classList.contains('open'));
-    if (anyPanelOpen) { closeAllPanels(); return; }
-    if (isFullScreen) winToggleFullscreen();
-  }
-});
-window.addEventListener('blur', () => {
-  // keep the panel open if focus moved into it (e.g. a native colour picker)
-  const a = document.activeElement;
-  if (a && a.closest && a.closest('.panel')) return;
-  closeAllPanels();
-});
-
-// ════════════════════════════════════════════════════════════════════════════
-// Notes + Folders data
-// ════════════════════════════════════════════════════════════════════════════
-let notes = [];
-let folders = [];                        // { id, name, parentId }
-let expandedFolders = new Set();         // folder ids that are open
-let currentId = null;                    // active note in the editor
-let selectedFolderId = null;             // highlighted folder (target for new notes)
-let saveTimer = null;
-
-function makeNote(title = 'Новая заметка', folderId = null) {
-  return { id: Date.now() + '_' + Math.random().toString(36).slice(2), title, content: '', updatedAt: Date.now(), folderId };
-}
-function makeFolder(name = 'Новая папка', parentId = null) {
-  return { id: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2), name, parentId };
-}
-function folderExists(id) { return id != null && folders.some(f => f.id === id); }
-function noteById(id) { return notes.find(n => n.id === id); }
-function folderById(id) { return folders.find(f => f.id === id); }
-
-// ── Init ──────────────────────────────────────────────
-async function init() {
-  // settings first (so theme/transparency apply before first paint of content)
-  const sv = await ipcRenderer.invoke('settings:load') || {};
-  applyTheme(sv.theme || DEFAULT_THEME, false);
-  applyTransparency(typeof sv.opacity === 'number' ? sv.opacity : 52, false);
-  if (Array.isArray(sv.expandedFolders)) expandedFolders = new Set(sv.expandedFolders);
-  if (sv.selectedFolderId) selectedFolderId = sv.selectedFolderId;
-
-  setupRootDrop(document.getElementById('tree'));
-
-  const saved = await ipcRenderer.invoke('notes:load');
-  notes   = (saved && Array.isArray(saved.notes)   && saved.notes.length)   ? saved.notes   : [];
-  folders = (saved && Array.isArray(saved.folders))                          ? saved.folders : [];
-  if (!notes.length) notes = [makeNote('Первая заметка')];
-
-  // sanitise references
-  notes.forEach(n => { if (n.folderId !== null && !folderExists(n.folderId)) n.folderId = null; });
-  folders.forEach(f => { if (f.parentId !== null && !folderExists(f.parentId)) f.parentId = null; });
-  if (!folderExists(selectedFolderId)) selectedFolderId = null;
-  expandedFolders = new Set([...expandedFolders].filter(folderExists));
-
-  currentId = notes[0].id;
-  editor.innerHTML = notes[0].content || '';
-  renderTree();
-  updateWordCount();
-  editor.focus();
-}
-
-// ── Save ──────────────────────────────────────────────
-async function persist() {
-  await ipcRenderer.invoke('notes:save', { notes, folders });
-  const el = document.getElementById('saveFlash');
-  el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 1200);
-}
-function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(persist, 800); }
-
-function flushCurrent() {
-  if (!currentId) return;
-  const n = noteById(currentId);
-  if (!n) return;
-  n.content = editor.innerHTML;
-  n.updatedAt = Date.now();
-  const plain = editor.innerText.trim();
-  const first = plain.split('\n')[0].slice(0, 32).trim();
-  if (first && (n.title === 'Новая заметка' || n.title === 'Первая заметка')) n.title = first;
-}
-
-// ── Editor events ─────────────────────────────────────
-editor.addEventListener('input', () => { flushCurrent(); updateWordCount(); refreshNoteRow(); scheduleSave(); });
-editor.addEventListener('keyup', updateBtnStates);
-editor.addEventListener('mouseup', updateBtnStates);
-
-function updateWordCount() {
-  const t = editor.innerText.trim();
-  document.getElementById('wordCount').textContent = (t ? t.split(/\s+/).length : 0) + ' сл.';
-}
-function updateBtnStates() {
-  document.getElementById('btnB').classList.toggle('active', document.queryCommandState('bold'));
-  document.getElementById('btnI').classList.toggle('active', document.queryCommandState('italic'));
-  document.getElementById('btnU').classList.toggle('active', document.queryCommandState('underline'));
-  const color = document.queryCommandValue('foreColor');
-  if (color) {
-    const normalized = normColor(color);
-    let matched = false;
-    document.querySelectorAll('.swatch[data-hex]').forEach(s => {
-      const match = normColor(s.dataset.hex) === normalized;
-      s.classList.toggle('active', match);
-      if (match) matched = true;
-    });
-    if (!matched) document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-  }
-}
-function normColor(c) {
-  if (!c) return '';
-  const d = document.createElement('div');
-  d.style.color = c;
-  document.body.appendChild(d);
-  const computed = getComputedStyle(d).color;
-  document.body.removeChild(d);
-  return computed;
-}
-
-// ── Paste: strip colors but keep bold/italic/size ────
-editor.addEventListener('paste', e => {
-  e.preventDefault();
-  const html = e.clipboardData.getData('text/html');
-  const plain = e.clipboardData.getData('text/plain');
-  let content;
-  if (html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html;
-    tmp.querySelectorAll('*').forEach(el => {
-      el.style.color = ''; el.style.backgroundColor = ''; el.style.background = '';
-      if (el.tagName === 'FONT') el.removeAttribute('color');
-      if (el.getAttribute('style') === '') el.removeAttribute('style');
-    });
-    const body = tmp.querySelector('body');
-    content = (body || tmp).innerHTML;
-    content = content
-      .replace(/color\s*:\s*[^;}"']+;?/gi, '')
-      .replace(/background(-color)?\s*:\s*[^;}"']+;?/gi, '');
-  } else {
-    content = plain.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-  }
-  document.execCommand('insertHTML', false, content);
-});
-
-// ── Toolbar formatting ────────────────────────────────
-function fmt(cmd) { document.execCommand(cmd, false, null); editor.focus(); updateBtnStates(); }
-function changeFontSize(size) {
-  document.execCommand('fontSize', false, '7');
-  document.querySelectorAll('font[size="7"]').forEach(el => { el.removeAttribute('size'); el.style.fontSize = size + 'px'; });
-  editor.focus();
-}
-let savedRange = null;
-editor.addEventListener('mousedown', () => { savedRange = null; });
-document.addEventListener('mousedown', e => {
-  if (!editor.contains(e.target)) {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0 && editor.contains(sel.getRangeAt(0).commonAncestorContainer)) {
-      savedRange = sel.getRangeAt(0).cloneRange();
-    }
-  }
-});
-function setColor(color, swatchEl) {
-  if (savedRange) {
-    editor.focus({ preventScroll: true });
-    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedRange); savedRange = null;
-  } else { editor.focus({ preventScroll: true }); }
-  document.execCommand('foreColor', false, color);
-  document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-  if (swatchEl) swatchEl.classList.add('active');
-  showColorHint();
-}
-function showColorHint() {
-  const sel = window.getSelection();
-  if (!sel || sel.isCollapsed) {
-    const hint = document.getElementById('colorHint');
-    if (!hint) return;
-    hint.style.opacity = '1';
-    clearTimeout(hint._t);
-    hint._t = setTimeout(() => hint.style.opacity = '0', 1800);
-  }
-}
-
-// ════════════════════════════════════════════════════════════════════════════
-// Tree (folders + notes)
-// ════════════════════════════════════════════════════════════════════════════
-function childFolders(parentId) {
-  return folders.filter(f => (f.parentId ?? null) === parentId)
-                .sort((a,b) => a.name.localeCompare(b.name, 'ru'));
-}
-function childNotes(folderId) {
-  return notes.filter(n => (n.folderId ?? null) === folderId)
-              .sort((a,b) => b.updatedAt - a.updatedAt);
-}
-function isExpanded(id) { return expandedFolders.has(id); }
-
-function renderTree() {
-  const tree = document.getElementById('tree');
-  tree.innerHTML = '';
-  buildLevel(null, tree);
-  if (!tree.children.length) {
-    const empty = document.createElement('div');
-    empty.className = 'tree-empty';
-    empty.textContent = '— пусто —';
-    tree.appendChild(empty);
-  }
-}
-
-function buildLevel(parentId, container) {
-  childFolders(parentId).forEach(f => {
-    container.appendChild(buildFolderRow(f));
-    const kids = document.createElement('div');
-    kids.className = 'tree-children' + (isExpanded(f.id) ? '' : ' collapsed');
-    kids.dataset.folderId = f.id;
-    buildLevel(f.id, kids);
-    container.appendChild(kids);
-  });
-  childNotes(parentId).forEach(n => container.appendChild(buildNoteRow(n)));
-}
-
-function buildFolderRow(f) {
-  const row = document.createElement('div');
-  row.className = 'tree-row folder-row' + (f.id === selectedFolderId ? ' active' : '');
-  row.dataset.folderId = f.id;
-
-  const caret = document.createElement('span');
-  caret.className = 'row-caret' + (isExpanded(f.id) ? '' : ' collapsed');
-  caret.textContent = '▾';
-  caret.title = isExpanded(f.id) ? 'Свернуть' : 'Развернуть';
-  caret.addEventListener('click', e => { e.stopPropagation(); toggleFolder(f.id); });
-
-  const icon = document.createElement('span');
-  icon.className = 'row-icon';
-  icon.textContent = isExpanded(f.id) ? '▽' : '▷';
-  icon.style.fontSize = '10px';
-
-  const name = document.createElement('div');
-  name.className = 'row-name';
-  name.contentEditable = 'true';
-  name.spellcheck = false;
-  name.textContent = f.name;
-  name.title = f.name;
-  name.addEventListener('mousedown', () => selectFolder(f.id));
-  name.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); name.blur(); } });
-  name.addEventListener('blur', () => {
-    const v = name.innerText.trim().slice(0, 40) || 'Без названия';
-    f.name = v; name.textContent = v; name.title = v; scheduleSave();
-  });
-
-  const actions = document.createElement('div');
-  actions.className = 'row-actions';
-  const addNoteBtn = document.createElement('button');
-  addNoteBtn.className = 'row-act'; addNoteBtn.textContent = '+'; addNoteBtn.title = 'Новая заметка в папке';
-  addNoteBtn.addEventListener('click', e => { e.stopPropagation(); newNote(f.id); });
-  const addFolderBtn = document.createElement('button');
-  addFolderBtn.className = 'row-act'; addFolderBtn.textContent = '▤'; addFolderBtn.title = 'Новая вложенная папка'; addFolderBtn.style.fontSize = '8px';
-  addFolderBtn.addEventListener('click', e => { e.stopPropagation(); newFolder(f.id); });
-  const delBtn = document.createElement('button');
-  delBtn.className = 'row-act del'; delBtn.textContent = '✕'; delBtn.title = 'Удалить папку (содержимое поднимется уровнем выше)';
-  delBtn.addEventListener('click', e => { e.stopPropagation(); deleteFolder(f.id); });
-  actions.append(addNoteBtn, addFolderBtn, delBtn);
-
-  row.append(caret, icon, name, actions);
-
-  row.addEventListener('click', e => {
-    if (e.target === name || actions.contains(e.target) || e.target === caret) return;
-    selectFolder(f.id);
-    if (!isExpanded(f.id)) toggleFolder(f.id);
-  });
-
-  // drop target
-  makeDropTarget(row, f.id);
-  return row;
-}
-
-function buildNoteRow(n) {
-  const plain = (n.content || '').replace(/<[^>]*>/g,'').trim();
-  const row = document.createElement('div');
-  row.className = 'tree-row note-row' + (n.id === currentId ? ' active' : '');
-  row.dataset.noteId = n.id;
-  row.draggable = true;
-
-  const caret = document.createElement('span'); caret.className = 'row-caret leaf'; caret.textContent = '·';
-  const icon = document.createElement('span'); icon.className = 'row-icon'; icon.textContent = '◦';
-
-  const meta = document.createElement('div');
-  meta.className = 'note-meta';
-  const name = document.createElement('div');
-  name.className = 'row-name';
-  name.contentEditable = 'true';
-  name.spellcheck = false;
-  name.textContent = n.title;
-  name.title = n.title;
-  name.addEventListener('mousedown', e => { if (n.id !== currentId) { e.preventDefault(); switchNote(n.id); } });
-  name.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); name.blur(); editor.focus(); } });
-  name.addEventListener('blur', () => {
-    const v = name.innerText.trim().slice(0, 40) || 'Без названия';
-    n.title = v; name.textContent = v; name.title = v; scheduleSave();
-  });
-  const preview = document.createElement('div'); preview.className = 'note-preview'; preview.textContent = plain.slice(0,42) || '—';
-  const date = document.createElement('div'); date.className = 'note-date'; date.textContent = formatDate(n.updatedAt);
-  meta.append(name, preview, date);
-
-  const actions = document.createElement('div');
-  actions.className = 'row-actions';
-  const delBtn = document.createElement('button');
-  delBtn.className = 'row-act del'; delBtn.textContent = '✕'; delBtn.title = 'Удалить заметку';
-  delBtn.addEventListener('click', e => { e.stopPropagation(); deleteNote(n.id); });
-  actions.append(delBtn);
-
-  row.append(caret, icon, meta, actions);
-
-  row.addEventListener('click', e => {
-    if (e.target === name || actions.contains(e.target)) return;
-    switchNote(n.id);
-  });
-
-  // drag source — but let the editable title handle its own pointer interactions
-  row.addEventListener('dragstart', e => {
-    if (e.target.closest('.row-name')) { e.preventDefault(); return; }
-    e.dataTransfer.setData('text/ghostpad-note', n.id);
-    e.dataTransfer.effectAllowed = 'move';
-    row.classList.add('dragging');
-  });
-  row.addEventListener('dragend', () => row.classList.remove('dragging'));
-  return row;
-}
-
-function refreshNoteRow() {
-  const n = noteById(currentId);
-  if (!n) return;
-  const row = document.querySelector(`.note-row[data-note-id="${CSS.escape(n.id)}"]`);
-  if (!row) { renderTree(); return; }
-  const plain = (n.content || '').replace(/<[^>]*>/g,'').trim();
-  const prev = row.querySelector('.note-preview');
-  const name = row.querySelector('.row-name');
-  if (prev) prev.textContent = plain.slice(0,42) || '—';
-  if (name && document.activeElement !== name) { name.textContent = n.title; name.title = n.title; }
-}
-
-// ── Drag & drop: drop a note onto a folder row or the root area ──────────────
-function makeDropTarget(el, folderId) {
-  el.addEventListener('dragover', e => {
-    if (![...e.dataTransfer.types].includes('text/ghostpad-note')) return;
-    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-    el.classList.add('drop-target');
-  });
-  el.addEventListener('dragleave', () => el.classList.remove('drop-target'));
-  el.addEventListener('drop', e => {
-    el.classList.remove('drop-target');
-    const noteId = e.dataTransfer.getData('text/ghostpad-note');
-    if (!noteId) return;
-    e.preventDefault(); e.stopPropagation();
-    moveNoteToFolder(noteId, folderId);
-  });
-}
-let rootDropBound = false;
-function setupRootDrop(tree) {
-  if (rootDropBound) return;
-  rootDropBound = true;
-  tree.addEventListener('dragover', e => {
-    if (![...e.dataTransfer.types].includes('text/ghostpad-note')) return;
-    if (e.target.closest('.folder-row') || e.target.closest('.note-row')) return;
-    e.preventDefault(); e.dataTransfer.dropEffect = 'move'; tree.classList.add('drop-root');
-  });
-  tree.addEventListener('dragleave', e => { if (e.target === tree) tree.classList.remove('drop-root'); });
-  tree.addEventListener('drop', e => {
-    tree.classList.remove('drop-root');
-    if (e.target.closest('.folder-row')) return; // handled by folder row
-    const noteId = e.dataTransfer.getData('text/ghostpad-note');
-    if (!noteId) return;
-    e.preventDefault();
-    moveNoteToFolder(noteId, null);
-  });
-}
-function moveNoteToFolder(noteId, folderId) {
-  const n = noteById(noteId);
-  if (!n) return;
-  if ((n.folderId ?? null) === (folderId ?? null)) return;
-  n.folderId = folderId ?? null;
-  n.updatedAt = Date.now();
-  if (folderId && !isExpanded(folderId)) expandedFolders.add(folderId);
-  renderTree();
-  persist();
-  scheduleSettingsSave();
-}
-
-// ── Folder operations ─────────────────────────────────
-function toggleFolder(id) {
-  if (expandedFolders.has(id)) expandedFolders.delete(id); else expandedFolders.add(id);
-  renderTree();
-  scheduleSettingsSave();
-}
-function selectFolder(id) {
-  selectedFolderId = id;
-  document.querySelectorAll('.folder-row').forEach(r => r.classList.toggle('active', r.dataset.folderId === String(id)));
-  scheduleSettingsSave();
-}
-function newFolder(parentId = null) {
-  const target = parentId ?? selectedFolderId ?? null;
-  const f = makeFolder('Новая папка', target);
-  folders.push(f);
-  if (target) expandedFolders.add(target);
-  selectedFolderId = f.id;
-  renderTree();
-  persist();
-  scheduleSettingsSave();
-  // focus the new folder's name for immediate rename
-  const row = document.querySelector(`.folder-row[data-folder-id="${CSS.escape(f.id)}"] .row-name`);
-  if (row) { row.focus(); document.execCommand('selectAll', false, null); }
-}
-function deleteFolder(id) {
-  // Non-destructive: promote child notes & subfolders to this folder's parent.
-  const f = folderById(id);
-  if (!f) return;
-  const parent = f.parentId ?? null;
-  notes.forEach(n => { if ((n.folderId ?? null) === id) n.folderId = parent; });
-  folders.forEach(c => { if ((c.parentId ?? null) === id) c.parentId = parent; });
-  folders = folders.filter(c => c.id !== id);
-  expandedFolders.delete(id);
-  if (selectedFolderId === id) selectedFolderId = parent;
-  renderTree();
-  persist();
-  scheduleSettingsSave();
-}
-
-// ── Note operations ───────────────────────────────────
-function switchNote(id) {
-  if (id === currentId) return;
-  flushCurrent();
-  currentId = id;
-  const n = noteById(id);
-  editor.innerHTML = n ? (n.content || '') : '';
-  updateWordCount();
-  document.querySelectorAll('.note-row').forEach(r => r.classList.toggle('active', r.dataset.noteId === String(id)));
-  editor.focus();
-  scheduleSave();
-}
-function newNote(folderId = undefined) {
-  flushCurrent();
-  const target = (folderId !== undefined) ? folderId : (selectedFolderId ?? null);
-  const n = makeNote('Новая заметка', target);
-  notes.unshift(n);
-  if (target) expandedFolders.add(target);
-  currentId = n.id;
-  editor.innerHTML = '';
-  updateWordCount();
-  renderTree();
-  editor.focus();
-  persist();
-}
-function deleteNote(id) {
-  if (notes.length === 1) {
-    notes[0].content = ''; notes[0].title = 'Новая заметка'; notes[0].updatedAt = Date.now(); notes[0].folderId = null;
-    editor.innerHTML = ''; updateWordCount(); renderTree(); persist(); return;
-  }
-  const wasCurrent = currentId === id;
-  notes = notes.filter(n => n.id !== id);
-  if (wasCurrent) { currentId = notes[0].id; editor.innerHTML = notes[0].content || ''; updateWordCount(); }
-  renderTree();
-  persist();
-}
-
-function formatDate(ts) {
-  if (!ts) return '';
-  const d = new Date(ts), now = new Date();
-  return d.toDateString() === now.toDateString()
-    ? d.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'})
-    : d.toLocaleDateString('ru-RU', {day:'numeric',month:'short'});
-}
-
-init();
-</script>
+<!-- Renderer modules — order matters: state → settings → theme → transparency → window-controls → panels → tree → editor → main -->
+<script src="src/renderer/state.js"></script>
+<script src="src/renderer/settings.js"></script>
+<script src="src/renderer/theme.js"></script>
+<script src="src/renderer/transparency.js"></script>
+<script src="src/renderer/window-controls.js"></script>
+<script src="src/renderer/panels.js"></script>
+<script src="src/renderer/tree.js"></script>
+<script src="src/renderer/editor.js"></script>
+<script src="src/renderer/main.js"></script>
 </body>
 </html>
