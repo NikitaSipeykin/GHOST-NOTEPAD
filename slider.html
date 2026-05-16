@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>GhostPad · Прозрачность</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width:100%; height:100%; background:transparent; overflow:hidden; font-family:'JetBrains Mono', monospace; }
+
+  .shell {
+    width:100%; height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:10px 6px 8px;
+    background:rgba(16,16,24,0.92);
+    backdrop-filter:blur(24px) saturate(160%);
+    -webkit-backdrop-filter:blur(24px) saturate(160%);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px;
+    box-shadow:0 12px 40px rgba(0,0,0,0.5);
+    -webkit-app-region:no-drag;
+  }
+  .grip {
+    width:18px; height:3px; border-radius:2px; background:rgba(255,255,255,0.18);
+    -webkit-app-region:drag; flex-shrink:0; margin-bottom:6px;
+  }
+  .label {
+    font-size:7px; letter-spacing:0.18em; font-weight:700;
+    color:rgba(180,190,220,0.45); text-transform:uppercase;
+    writing-mode:vertical-rl; transform:rotate(180deg); margin:2px 0;
+  }
+  .track-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:6px 0; }
+  input[type=range] {
+    -webkit-appearance:slider-vertical;
+    appearance:slider-vertical;
+    width:14px; height:100%;
+    background:transparent; outline:none; cursor:pointer;
+  }
+  /* fallback for browsers without slider-vertical (modern Chromium has it; if absent we rotate) */
+  @supports not (appearance: slider-vertical) {
+    input[type=range] { -webkit-appearance:none; appearance:none; width:140px; height:4px; transform:rotate(-90deg); background:linear-gradient(to right, rgba(120,200,255,0.18), rgba(120,200,255,0.9)); border-radius:4px; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; border:2px solid rgba(120,200,255,0.9); cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.4); }
+  }
+  .value {
+    font-size:9px; color:rgba(180,190,220,0.7);
+    margin-top:6px; font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="grip" title="Перетащить главное окно — слайдер последует"></div>
+  <div class="label">α</div>
+  <div class="track-wrap">
+    <input type="range" id="slider" min="12" max="98" value="52" aria-label="Прозрачность">
+  </div>
+  <div class="value" id="value">52%</div>
+</div>
+<script>
+const { ipcRenderer } = require('electron');
+const slider = document.getElementById('slider');
+const value  = document.getElementById('value');
+
+function setUI(pct) {
+  pct = Math.max(12, Math.min(98, Math.round(+pct || 0)));
+  if (+slider.value !== pct) slider.value = pct;
+  value.textContent = pct + '%';
+}
+
+slider.addEventListener('input', () => {
+  const pct = +slider.value;
+  value.textContent = pct + '%';
+  ipcRenderer.send('slider:opacity-changed', pct);
+});
+
+ipcRenderer.on('slider:set', (_, pct) => setUI(pct));
+
+// Esc closes the slider window
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') ipcRenderer.send('slider:hide');
+});
+</script>
+</body>
+</html>
